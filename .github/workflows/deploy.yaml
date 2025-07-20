@@ -23,14 +23,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run training
+      - name: Train model
         run: python src/train_model.py
 
-      - name: Archive files
-        run: zip -r app.zip app model.pkl
-
-      # ——————————————
-      # Ось тут ми робимо вхід у Azure через SP
       - name: Azure Login
         uses: azure/login@v1
         with:
@@ -40,5 +35,4 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: 'ai-pm-tools-webapp-hakuna20matata20'
-          # production слот за замовчуванням, тому slot-name можна пропустити
-          package: app.zip
+          package: '.'
