@@ -1,0 +1,46 @@
+name: Deploy to Azure App Service
+
+# Тригериться на кожен пуш у гілку main
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Клон репозиторію
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Встановлюємо Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      # 3. Інсталюємо залежності
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # 4. (Опціонально) Перетреновуємо модель
+      - name: Run training
+        run: python src/train_model.py
+
+      # 5. Упаковка апки та моделі в zip
+      - name: Archive files
+        run: zip -r app.zip app model.pkl
+
+      # 6. Деплой на Azure App Service
+      - name: Deploy to Azure WebApp
+        uses: azure/webapps-deploy@v2
+        with:
+          # ← тут заміни на точну назву свого Web App
+          app-name: 'ai-pm-tools-webapp-<твоє-унікальне-ім’я>'
+          slot-name: 'production'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: app.zip
